@@ -1,0 +1,145 @@
+version: "3.8"
+
+name: "mongodb-6_0"
+
+services:
+  shard-setup:
+    hostname: shard-setup
+    container_name: shard-setup
+    image: mongo:6.0
+    entrypoint: /usr/bin/bash /shard-setup/setup.sh
+    volumes:
+      - ./shard-setup:/shard-setup
+    networks:
+      - mongo-shard-net
+    depends_on:
+      - mongos-1
+    restart: "no"
+
+  mongos-1:
+    hostname: mongos-1
+    container_name: mongos-1
+    image: mongo:6.0
+    networks:
+      - mongo-shard-net
+    entrypoint:
+      - "mongos"
+      - "--configdb"
+      - "cfgrs0/cfgrs0-1:27019,cfgrs0-2:27019,cfgrs0-3:27019"
+      - "--bind_ip_all"
+    expose:
+      - 27017
+    ports:
+      - '27017:27017'
+    restart: on-failure
+    depends_on:
+      - cfgrs0-1
+      - cfgrs0-2
+      - cfgrs0-3
+      - dbrs0-1
+      - dbrs0-2
+      - dbrs0-3
+      - dbrs1-1
+      - dbrs1-2
+      - dbrs1-3
+
+  cfgrs0-1:
+    hostname: cfgrs0-1
+    container_name: cfgrs0-1
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --configsvr --replSet "cfgrs0" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27019"
+  cfgrs0-2:
+    hostname: cfgrs0-2
+    container_name: cfgrs0-2
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --configsvr --replSet "cfgrs0" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27019"
+  cfgrs0-3:
+    hostname: cfgrs0-3
+    container_name: cfgrs0-3
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --configsvr --replSet "cfgrs0" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27019"
+
+  # 配置dbrs0和dbrs1
+  dbrs0-1:
+    hostname: dbrs0-1
+    container_name: dbrs0-1
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --shardsvr --replSet "dbrs0" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27018"
+  dbrs0-2:
+    hostname: dbrs0-2
+    container_name: dbrs0-2
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --shardsvr --replSet "dbrs0" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27018"
+  dbrs0-3:
+    hostname: dbrs0-3
+    container_name: dbrs0-3
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --shardsvr --replSet "dbrs0" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27018"
+
+  dbrs1-1:
+    hostname: dbrs1-1
+    container_name: dbrs1-1
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --shardsvr --replSet "dbrs1" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27018"
+  dbrs1-2:
+    hostname: dbrs1-2
+    container_name: dbrs1-2
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --shardsvr --replSet "dbrs1" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27018"
+  dbrs1-3:
+    hostname: dbrs1-3
+    container_name: dbrs1-3
+    image: mongo:6.0
+    entrypoint: /usr/bin/mongod --shardsvr --replSet "dbrs1" --bind_ip_all
+    networks:
+      - mongo-shard-net
+    restart: on-failure
+    expose:
+      - "27018"
+
+networks:
+  mongo-shard-net:
+    name: mongo-shard-net
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
