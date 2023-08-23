@@ -1,0 +1,15 @@
+version: '2'
+
+name: bitnami-etcd
+
+services:
+  etcd:
+    image: docker.io/bitnami/etcd:3.5
+    user: root
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+    volumes:
+      - etcd_data:/bitnami/etcd
+volumes:
+  etcd_data:
+    driver: local
